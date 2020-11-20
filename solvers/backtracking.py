@@ -1,21 +1,20 @@
-from solvers.helpers import is_possible
+from solvers.Solver import Solver
 
 
-def solve(grid, field=0):
-    size = len(grid)
-    row = field // size
-    col = field % size
+class Backtracking(Solver):
 
-    if field == size ** 2 - 1:
-        return True
+    def solve(self, field=0):
+        row, col = self.get_field_pos(field)
 
-    if grid[row][col] > 0:
-        solve(grid, field + 1)
+        if field == self.size[0] ** 2 - 1:
+            return True
 
-    for i in range(1, size + 1):
-        if is_possible(grid, field, i):
-            grid[row][col] = i;
-            if solve(grid, field + 1):
-                return True
+        if self.grid[row][col] > 0:
+            self.solve(field + 1)
 
-    return False
+        for i in range(1, self.size[0] + 1):
+            if self.is_possible(self.grid, field, i):
+                self.grid[row][col] = i;
+                if self.solve(field + 1):
+                    return True
+        return False

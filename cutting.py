@@ -181,20 +181,16 @@ def process_fields(sudoku_field_img_array):
                 cut_digit = thresholded_img[y:y + h, x:x + w]
                 minmax = (cut_digit.flatten().min(), cut_digit.flatten().max())
                 cut_digit = rescale_intensity(cut_digit, minmax)
-                cut_digit = rescalle_img(cut_digit,20 )
+                cut_digit = rescalle_img(cut_digit,20)
                 if debug and False:
                     digit_img = np.zeros(dim, dtype=np.uint8)
                     digit_img[y:y + h, x:x + w] = util.invert(cut_digit)
                     digit_imgs.append(digit_img)
-                # here should be number recognition for each digit
-                # ============
                 digit = recognition.predict(cut_digit)
-                print(digit)
-                # ============
                 recognized_fields.append(digit)
-    if debug and False:
-        digit_imgs = np.array(digit_imgs, dtype=object).reshape(9, 9)
-        #cv2.imshow('fields for nn', rescalle_img(np.vstack([np.hstack(row) for row in digit_imgs])))
+    #if debug:
+    #    digit_imgs = np.array(digit_imgs, dtype=object).reshape(9, 9)
+    #    #cv2.imshow('fields for nn', rescalle_img(np.vstack([np.hstack(row) for row in digit_imgs])))
     return np.array(recognized_fields).reshape(9, 9)
 
 
@@ -213,7 +209,7 @@ def run_cutting(thresholded_img, original_img, rescalle=False, enable_debug=Fals
         return cut_board(warped)
 
 
-
+#to be deleted
 def test_threshold(input_img):
     gray = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)
     edges = cv2.Canny(gray, 50, 150, apertureSize=3)
@@ -223,11 +219,3 @@ def test_threshold(input_img):
         x1, y1, x2, y2 = line[0]
         cv2.line(edges, (x1, y1), (x2, y2), 255, 6)
     return edges
-
-# nnimg = np.zeros((28, 28), dtype=np.uint8)
-# nnimg[y:y + h, x:x + w] = util.invert(cut_digit)
-# nnimg = util.invert(nnimg)
-# nnimg = cv2.dilate(nnimg, np.ones((1, 1), np.uint8), iterations=20)
-# nnimg_4d = nnimg.reshape(1, 28, 28, 1)
-# cv2.imshow('cut digit', cut_digit )
-# cv2.waitKey(0)

@@ -11,7 +11,7 @@ def solve_sudoku():
     thresholded = cutting.test_threshold(original_img)
 
     # Cutting the board to separate fields
-    sudoku_field_img_array = cutting.run_cutting(thresholded, original_img, rescalle=True)
+    sudoku_field_img_array = cutting.run_cutting(thresholded, original_img, enable_debug=True)
     if sudoku_field_img_array is None:
         cv2.waitKey(0)
         exit()

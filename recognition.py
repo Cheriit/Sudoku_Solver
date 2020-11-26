@@ -1,12 +1,31 @@
 import numpy as np
+import cv2
 from math import floor, ceil
 from keras.models import load_model
 from PIL import Image
+from skimage.exposure import rescale_intensity
+from skimage import util
+
 
 model=None
 
 
+def rescalle_img(img,wanted_x):
+    dimensions = img.shape
+    target_x = int(dimensions[0] * wanted_x / dimensions[0])
+    target_y = int(dimensions[1] * wanted_x / dimensions[0])
+    img = cv2.resize(img, (target_y, target_x))
+    return img
+
+
 def predict(cut_digit_img):
+    minmax = (cut_digit_img.flatten().min(), cut_digit_img.flatten().max())
+    cut_digit_img = rescale_intensity(cut_digit_img, minmax)
+    cut_digit_img = util.invert(cut_digit_img)
+    cut_digit_img = rescalle_img(cut_digit_img,24)
+    _, cut_digit_img = cv2.threshold(cut_digit_img, 110, 255, cv2.THRESH_BINARY)
+
+
     cut_digit_img = Image.fromarray(np.uint8(cut_digit_img))
     global model
     if model is None:

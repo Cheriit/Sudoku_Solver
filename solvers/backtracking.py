@@ -8,15 +8,15 @@ class Backtracking(Solver):
     def solve(self, field=0):
         row, col = self.get_field_pos(field)
 
-        if field == self.size[0] ** 2 - 1:
+        if field == self.size ** 2 - 1:
             return True
 
         if self.grid[row][col] > 0:
             self.solve(field + 1)
 
-        for i in range(1, self.size[0] + 1):
-            if self.is_possible(self.grid, field, i):
-                self.grid[row][col] = i;
+        for i in range(1, self.size + 1):
+            if self.is_possible(field, i):
+                self.grid[row][col] = i
                 if self.solve(field + 1):
                     return True
         return False
@@ -34,8 +34,8 @@ class Backtracking(Solver):
 
         segment_start_row, segment_start_col = self.get_segment_pos(row, col)
 
-        for i in range(segment_start_row, segment_start_row + self.segment_size):
-            for j in range(segment_start_col, segment_start_col + self.segment_size):
+        for i in range(int(segment_start_row), int(segment_start_row + self.segment_size)):
+            for j in range(int(segment_start_col), int(segment_start_col + self.segment_size)):
                 if self.grid[i][j] == number:
                     return False
 
@@ -52,7 +52,7 @@ class BacktrackingV2(Solver):
     def solve(self, field=0):
         row, col = self.get_field_pos(field)
 
-        if field == self.size[0] ** 2 - 1:
+        if field == self.size ** 2 - 1:
             return True
 
         if self.grid[row][col] > 0:
@@ -84,9 +84,9 @@ class BacktrackingV2(Solver):
         ])))
 
     def fill_possible_grid(self):
-        for i in self.size[0]:
-            for j in self.size[1]:
-                self.possible_grid[i, j] = list(self.get_field_pos(i * self.size[0] + j * self.size[1]))
+        for i in self.size:
+            for j in self.size:
+                self.possible_grid[i, j] = list(self.get_field_pos(i * self.size + j * self.size))
 
     def removePossible(self, row, col, value):
         res = True

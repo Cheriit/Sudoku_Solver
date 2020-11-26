@@ -2,9 +2,9 @@ import cv2
 import os
 import numpy as np
 import imutils
-from skimage.exposure import rescale_intensity
-from skimage import util
+
 import recognition
+from preproccessing import field_threshold
 
 debug = False
 
@@ -15,6 +15,7 @@ def rescalle_img(img,wanted_x = 800):
     target_y = int(dimensions[1] * wanted_x / dimensions[0])
     img = cv2.resize(img, (target_y, target_x))
     return img
+#wanted_x = 80
 
 
 def order_points(four_points):
@@ -153,9 +154,8 @@ def process_fields(sudoku_field_img_array):
         digit_imgs = []
     for row_id in range(len(sudoku_field_img_array)):
         for col_id in range(len(sudoku_field_img_array[row_id])):
-            # dim=(28,28)
-            # thresholded_img = cv2.resize(sudoku[row_id][col_id], dim)
-            thresholded_img = sudoku_field_img_array[row_id][col_id]
+            original_img = sudoku_field_img_array[row_id][col_id]
+            thresholded_img = field_threshold(original_img.copy())
             dim = thresholded_img.shape
 
             contours, _ = cv2.findContours(thresholded_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -172,20 +172,18 @@ def process_fields(sudoku_field_img_array):
                         found = (x, y, w, h)
                         break
             if found is None:
-                recognized_fields.append(None)
+                recognized_fields.append(0)
                 if debug:
                     digit_img = np.zeros(dim, dtype=np.uint8)
                     digit_imgs.append(digit_img)
             else:
                 (x, y, w, h) = found
-                cut_digit = thresholded_img[y:y + h, x:x + w]
-                minmax = (cut_digit.flatten().min(), cut_digit.flatten().max())
-                cut_digit = rescale_intensity(cut_digit, minmax)
-                cut_digit = rescalle_img(cut_digit,20)
-                if debug and False:
-                    digit_img = np.zeros(dim, dtype=np.uint8)
-                    digit_img[y:y + h, x:x + w] = util.invert(cut_digit)
-                    digit_imgs.append(digit_img)
+
+                cut_digit = original_img[y:y + h, x:x + w]
+                # if debug and False:
+                #    digit_img = np.zeros(dim, dtype=np.uint8)
+                #    digit_img[y:y + h, x:x + w] = util.invert(cut_digit)
+                #    digit_imgs.append(digit_img)
                 digit = recognition.predict(cut_digit)
                 recognized_fields.append(digit)
     #if debug:
@@ -203,19 +201,11 @@ def run_cutting(thresholded_img, original_img, rescalle=False, enable_debug=Fals
         original_img=rescalle_img(original_img)
     warped = find_board_and_warp_it(thresholded_img,original_img)
     if warped is None:
-        print("board not found")
+        print("ERROR: Board not found ;(")
         return None
     else:
         return cut_board(warped)
 
 
-#to be deleted
-def test_threshold(input_img):
-    gray = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray, 50, 150, apertureSize=3)
-    edges = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
-    lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 100, minLineLength=120, maxLineGap=60)
-    for line in lines:
-        x1, y1, x2, y2 = line[0]
-        cv2.line(edges, (x1, y1), (x2, y2), 255, 6)
-    return edges
+def draw_output(output_array):
+    print('\ndrawing not yet implemented!\n ;)\n')

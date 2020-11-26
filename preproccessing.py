@@ -4,7 +4,7 @@
 # In[6]:
 
 
-get_ipython().run_line_magic('matplotlib', 'inline')
+#get_ipython().run_line_magic('matplotlib', 'inline')
 from matplotlib.pyplot import imshow
 import skimage.io as io
 from pylab import *
@@ -16,9 +16,9 @@ from skimage.color import rgb2hsv, hsv2rgb, rgb2gray
 from matplotlib import pylab as plt  
 import numpy as np 
 from numpy import array
-from IPython.display import display
-from ipywidgets import interact, interactive, fixed
-from IPython.core.display import clear_output
+#from IPython.display import display
+#from ipywidgets import interact, interactive, fixed
+#from IPython.core.display import clear_output
 from skimage import measure
 import cv2
 
@@ -39,6 +39,21 @@ def inverse(image):
 
 
 # In[13]:
+
+def field_threshold(field_img):
+    _, thresholded_field_img = cv2.threshold(field_img, 110, 255, cv2.THRESH_BINARY_INV)
+    return thresholded_field_img
+
+
+def board_threshold(input_img):
+    gray = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+    edges = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
+    lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 100, minLineLength=120, maxLineGap=60)
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        cv2.line(edges, (x1, y1), (x2, y2), 255, 6)
+    return edges
 
 
 def clean_image(img):
@@ -93,9 +108,9 @@ def clean_image_to_file(img, black_and_white,path):
 # In[18]:
 
 
-a,b = clean_image(cv2.imread("img/easy7.jpg"))
-plt.imshow(a, cmap='gray')
-plt.show()
-plt.imshow(b, cmap='gray')
-plt.show()
+#a,b = clean_image(cv2.imread("img/easy7.jpg"))
+#plt.imshow(a, cmap='gray')
+#plt.show()
+#plt.imshow(b, cmap='gray')
+#plt.show()
 

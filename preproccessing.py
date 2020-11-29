@@ -1,29 +1,8 @@
 ﻿#!/usr/bin/env python
 # coding: utf-8
 
-# In[6]:
-
-
-get_ipython().run_line_magic('matplotlib', 'inline')
-from matplotlib.pyplot import imshow
-import skimage.io as io
-from pylab import *
-import skimage
-from skimage import data, filters, exposure, feature
-from skimage.filters import rank
-from skimage.util.dtype import convert
-from skimage.color import rgb2hsv, hsv2rgb, rgb2gray
-from matplotlib import pylab as plt
-import numpy as np
-from numpy import array
-from IPython.display import display
-from ipywidgets import interact, interactive, fixed
-from IPython.core.display import clear_output
-from skimage import measure
 import cv2
-
-
-# In[10]:
+from pylab import *
 
 
 def get_area(rect):
@@ -31,14 +10,8 @@ def get_area(rect):
     return (w * h)
 
 
-# In[11]:
-
-
 def inverse(image):
     return (255 - image)
-
-
-# In[13]:
 
 
 def clean_image(img):
@@ -79,9 +52,6 @@ def clean_image(img):
     return img_to_show, img
 
 
-# In[5]:
-
-
 def clean_image_to_file(img, black_and_white, path):
     grayscale, thresholded = clean_image(img)
     if black_and_white:
@@ -113,11 +83,8 @@ def threshold_cell(img):
     return img
 
 
-# In[18]:
-
-
-a, b = clean_image(cv2.imread("img/easy7.jpg"))
-plt.imshow(a, cmap='gray')
-plt.show()
-plt.imshow(b, cmap='gray')
-plt.show()
+# a, b = clean_image(cv2.imread("img/easy7.jpg"))
+# plt.imshow(a, cmap='gray')
+# plt.show()
+# plt.imshow(b, cmap='gray')
+# plt.show()

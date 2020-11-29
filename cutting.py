@@ -1,7 +1,6 @@
 import cv2
-import os
-import numpy as np
 import imutils
+import numpy as np
 
 import recognition
 from preproccessing import field_threshold

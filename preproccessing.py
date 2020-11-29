@@ -14,7 +14,7 @@ def inverse(image):
     return (255 - image)
 
 
-def clean_image(img):
+def board_threshold(img):
     img = img.astype('uint8')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img_clean = cv2.fastNlMeansDenoising(img, h=5)
@@ -48,7 +48,10 @@ def clean_image(img):
         img = cv2.dilate(img, np.ones((5, 5), np.uint8), iterations=3)
         img = inverse(img)
         ret, img = cv2.threshold(img, avr - 1.3 * sd, 255, cv2.THRESH_BINARY_INV)
-    print("Średnia: " + str(avr) + " Odchylenie:" + str(sd))
+    lines = cv2.HoughLinesP(img, 1, np.pi / 180, 100, minLineLength=120, maxLineGap=60)
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        cv2.line(img, (x1, y1), (x2, y2), 255, 6)    
     return img_to_show, img
 
 
@@ -60,7 +63,7 @@ def clean_image_to_file(img, black_and_white, path):
         cv2.imwrite(path, grayscale)
 
 
-def threshold_cell(img):
+def field_threshold(img):
     img = cv2.fastNlMeansDenoising(img, h=5)
     avr = average(img)
     sd = std(img)

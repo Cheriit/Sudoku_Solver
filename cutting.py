@@ -9,13 +9,15 @@ from preproccessing import field_threshold
 debug = False
 
 
-def rescalle_img(img,wanted_x = 800):
+def rescale_img(img, wanted_x=800):
     dimensions = img.shape
     target_x = int(dimensions[0] * wanted_x / dimensions[0])
     target_y = int(dimensions[1] * wanted_x / dimensions[0])
     img = cv2.resize(img, (target_y, target_x))
     return img
-#wanted_x = 80
+
+
+# wanted_x = 80
 
 
 def order_points(four_points):
@@ -88,7 +90,7 @@ def warp(img, board_contour):
 
 
 def find_board_and_warp_it(thresholded_img, img):
-    original_for_warp=img.copy()
+    original_for_warp = img.copy()
 
     # find contours in the thresholded image, keep only the 10 largest contours
     found_contours = cv2.findContours(thresholded_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -109,13 +111,13 @@ def find_board_and_warp_it(thresholded_img, img):
     cv2.drawContours(img, [found_contours[0]], -1, (0, 0, 255), 3)
     # draw found board_contour in green
     if board_contour is not None:
-        cv2.drawContours(img, [board_contour], -1, (0,255, 0), 3)
+        cv2.drawContours(img, [board_contour], -1, (0, 255, 0), 3)
 
     # Show debug info in case of failure or when prompted to do so
     if board_contour is None or debug:
         thresholded_color_temp = cv2.cvtColor(thresholded_img, cv2.COLOR_GRAY2BGR)
-        to_show=np.hstack((thresholded_color_temp, img))
-        cv2.imshow("finding board", rescalle_img(to_show))
+        to_show = np.hstack((thresholded_color_temp, img))
+        cv2.imshow("finding board", rescale_img(to_show))
     if board_contour is None:
         return None
     else:
@@ -144,7 +146,7 @@ def cut_board(warped):
                 warped = cv2.circle(warped, (x // 18 + column * x // 9, y // 18 + row * y // 9), radius=3,
                                     color=(0, 0, 255), thickness=1)
     if debug:
-        cv2.imshow('cut board', rescalle_img(warped))
+        cv2.imshow('cut board', rescale_img(warped))
     return sudoku_field_img_array
 
 
@@ -186,7 +188,7 @@ def process_fields(sudoku_field_img_array):
                 #    digit_imgs.append(digit_img)
                 digit = recognition.predict(cut_digit)
                 recognized_fields.append(digit)
-    #if debug:
+    # if debug:
     #    digit_imgs = np.array(digit_imgs, dtype=object).reshape(9, 9)
     #    #cv2.imshow('fields for nn', rescalle_img(np.vstack([np.hstack(row) for row in digit_imgs])))
     return np.array(recognized_fields).reshape(9, 9)
@@ -195,11 +197,11 @@ def process_fields(sudoku_field_img_array):
 def run_cutting(thresholded_img, original_img, rescalle=False, enable_debug=False):
     if enable_debug:
         global debug
-        debug=True
+        debug = True
     if rescalle:
-        thresholded_img = rescalle_img(thresholded_img)
-        original_img=rescalle_img(original_img)
-    warped = find_board_and_warp_it(thresholded_img,original_img)
+        thresholded_img = rescale_img(thresholded_img)
+        original_img = rescale_img(original_img)
+    warped = find_board_and_warp_it(thresholded_img, original_img)
     if warped is None:
         print("ERROR: Board not found ;(")
         return None

@@ -1,5 +1,5 @@
 # Sudoku solver
-Simple project solving 9x9 sudoku showed to camera.
+Simple project solving 9x9 sudoku from file.
 Project created for Communication Human-Computer classes.
 
 ### Installation (conda required):
@@ -8,11 +8,15 @@ Project created for Communication Human-Computer classes.
 
 ### Running project 
 - `conda activate <name>`
-- `python setup.py` for project
+- Commands:
+    - `python main.py solve <image_path_name>` - solve sudoku on image 
+    - `python main.py test` - test complete sudoku solving program
+    - `python main.py test_recognition` -  test number recognition from image
+    - `python main.py test_solver <algorithm>` - test sudoku solving algorithm (`basic` or `possibilities`)
 - `jupyter-notebook` for generating number recognition model
 
 ### Dependencies export:
-- `conda list --explicit > spec-file.txt`
+- `conda list --explicit > spec-file-windows.txt`
 
 Project created by:
 - [@Cheriit](https://github.com/Cheriit/)

@@ -27,13 +27,13 @@ def clean_image(img):
     else:
         ret, img = cv2.threshold(img_clean, avr - 1.5 * sd, 255, cv2.THRESH_BINARY_INV)
 
-    _, contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    rects = [cv2.boundingRect(cnt) for cnt in contours]
-    rects = sorted(rects, key=get_area, reverse=True)
-    x, y, w, h = rects[0]
-    img_to_show = img_clean[y:y + h, x:x + w]
-    # if not black_and_white:
-    #     return img_to_show
+    #_, contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #rects = [cv2.boundingRect(cnt) for cnt in contours]
+    #rects = sorted(rects,key=get_area,reverse=True)
+    #x,y,w,h = rects[0]
+    img_to_show = img_clean#[y:y+h,x:x+w]
+    #if not black_and_white:
+   #     return img_to_show
     avr = average(img_to_show)
     sd = std(img_to_show)
     if avr > 200:

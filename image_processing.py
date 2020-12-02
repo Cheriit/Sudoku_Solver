@@ -68,7 +68,8 @@ def detect_board(thresholded_img: np.ndarray, img: np.ndarray) -> np.ndarray:
     return warped
 
 
-def cut_out_fields(warped: np.ndarray) -> np.ndarray:
+def cut_out_fields(warped_original: np.ndarray) -> np.ndarray:
+    warped = warped_original.copy()
     y, x, _ = warped.shape
     warped_gray = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
     sudoku_field_img_array = []
@@ -91,7 +92,7 @@ def cut_out_fields(warped: np.ndarray) -> np.ndarray:
                 warped = cv2.circle(warped, (x // 18 + column * x // 9, y // 18 + row * y // 9), radius=3,
                                     color=(0, 0, 255), thickness=1)
     if debug:
-        cv2.imshow('cut board', rescale_img(warped))
+        cv2.imshow('cut board', rescale_img(warped,800))
     return sudoku_field_img_array
 
 
@@ -128,7 +129,7 @@ def process_fields(sudoku_field_img_array: np.ndarray) -> np.ndarray:
     return np.array(recognized_fields).reshape(9, 9)
 
 
-def cut_image(thresholded_img: np.ndarray, original_img: np.ndarray, rescale: bool = False, enable_debug: bool = False) -> np.ndarray:
+def cut_image(thresholded_img: np.ndarray, original_img: np.ndarray, rescale: bool = False, enable_debug: bool = False):
     global debug
     debug = enable_debug
 
@@ -137,7 +138,7 @@ def cut_image(thresholded_img: np.ndarray, original_img: np.ndarray, rescale: bo
         original_img = rescale_img(original_img)
 
     warped = detect_board(thresholded_img, original_img)
-    return cut_out_fields(warped)
+    return cut_out_fields(warped), warped
 
 
 def threshold_field_image(img: np.ndarray) -> np.ndarray:
@@ -183,6 +184,29 @@ def threshold_board_image(img: np.ndarray) -> np.ndarray:
         cv2.line(img, (x1, y1), (x2, y2), 255, 6)
     return img
 
+def draw_text_centered(image,x,y,text):
+    dim = image.shape
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    thickness=3
+    scale = 0.07  # this value can be from 0 to 1 (0,1] to change the size of the text relative to the image
+    fontScale = min(dim[1], dim[0]) / 25 * scale
+    textsize = cv2.getTextSize(text, font, fontScale, thickness)[0]
+    textX = int(x - (textsize[0] / 2))
+    textY = int(y + (textsize[1] / 2))
+    #cv2.rectangle(image, (textX, textY), (textX + textsize[0], textY - textsize[1]), (0, 0, 255))
+    cv2.putText(image, text, (textX, textY), font, fontScale, (128, 0, 0), thickness)
 
-def draw_output(output_array: np.ndarray) -> np.ndarray:
-    pass
+
+
+def draw_output(detected_array: np.ndarray,solved_array: np.ndarray, warped):
+    warped = rescale_img(warped, 800)
+    dim = warped.shape
+    for row in range(9):
+        for col in range(9):
+            if detected_array[col, row]==0:
+                digit_center_x= dim[1] // 18 + dim[1]//9 * row
+                digit_center_y= dim[0] // 18 + dim[0]//9 * col
+                text = str(solved_array[col, row])
+                draw_text_centered(warped,digit_center_x,digit_center_y, text)
+    cv2.imshow('drawOutput', warped)
+

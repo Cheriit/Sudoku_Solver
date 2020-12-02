@@ -29,6 +29,9 @@ def predict(cut_digit_img: np.ndarray) -> int:
         model = load_model("number_recognition_model/number_recognition_model.h5")
 
     image_for_nn = process_img(cut_digit_img)
+    #img_for_show=image_for_nn.reshape(28,28)
+    #cv2.imshow('image_for_nn',img_for_show)
+    #cv2.waitKey(1)
     res = model.predict([image_for_nn])[0]
     return np.argmax(res)
 

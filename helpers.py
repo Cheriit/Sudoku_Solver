@@ -4,10 +4,10 @@ import cv2
 import numpy as np
 
 
-def rescale_img(img: np.ndarray, wanted_x: int = 1024) -> np.ndarray:
+def rescale_img(img: np.ndarray, wanted_y: int = 1024) -> np.ndarray:
     dimensions = img.shape
-    target_x = int(dimensions[0] * wanted_x / dimensions[0])
-    target_y = int(dimensions[1] * wanted_x / dimensions[0])
+    target_x = int(dimensions[0] * wanted_y / dimensions[0])
+    target_y = int(dimensions[1] * wanted_y / dimensions[0])
     img = cv2.resize(img, (target_y, target_x))
     return img
 

@@ -102,8 +102,9 @@ def process_fields(sudoku_field_img_array: np.ndarray) -> np.ndarray:
         for col_id in range(len(sudoku_field_img_array[row_id])):
             original_img = sudoku_field_img_array[row_id][col_id]
             thresholded_img = threshold_field_image(original_img.copy())
-            dim = thresholded_img.shape
 
+
+            dim = thresholded_img.shape
             contours, _ = cv2.findContours(thresholded_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             found = None
             if len(contours) != 0:
@@ -122,6 +123,10 @@ def process_fields(sudoku_field_img_array: np.ndarray) -> np.ndarray:
                 recognized_fields.append(0)
             else:
                 (x, y, w, h) = found
+                #marked_contour_img=cv2.cvtColor(thresholded_img, cv2.COLOR_GRAY2BGR)
+                #cv2.rectangle(marked_contour_img,(x,y),(x+w,y+h),(255,0,0),1)
+                #cv2.imshow('contours',marked_contour_img)
+                #cv2.waitKey(0)
                 cut_digit = original_img[y:y + h, x:x + w]
                 digit = number_recognition.predict(cut_digit)
                 recognized_fields.append(digit)
@@ -154,6 +159,9 @@ def threshold_field_image(img: np.ndarray) -> np.ndarray:
     else:
         ret, img = cv2.threshold(img, avr - 1.3 * sd, 255, cv2.THRESH_BINARY_INV)
         img = cv2.erode(img, np.ones((2, 2), np.uint8), iterations=1)
+    # crop the image to eliminate sudoku border causing us a headache
+    dim = img.shape
+    img = img[int(0.02 * dim[0]):int(0.98 * dim[0]), int(0.02 * dim[1]):int(0.98 * dim[1])]
     return img
 
 

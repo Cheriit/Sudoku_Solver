@@ -80,7 +80,7 @@ def test() -> None:
     thresholded = threshold_board_image(original_img)
 
     # Cutting the board to separate fields
-    sudoku_field_img_array,warped = cut_image(thresholded, original_img, enable_debug=True)
+    sudoku_field_img_array,warped = cut_image(thresholded, original_img, enable_debug=False)
     if sudoku_field_img_array is None:
         cv2.waitKey(0)
         exit()

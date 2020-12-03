@@ -69,6 +69,7 @@ def solve(image_path: str) -> None:
 def test() -> None:
     import cv2
     from image_processing import threshold_board_image, cut_image, process_fields, draw_output
+    from number_recognition import show_imgs_for_nn
 
     start_time = time.time()
 
@@ -109,14 +110,14 @@ def test() -> None:
 
     # draw the output to the original image
     draw_output(detected_array,alg.grid,warped)
-
+    show_imgs_for_nn()
     cv2.waitKey(0)
 
 
 def test_recognition() -> None:
     import cv2
     from image_processing import threshold_board_image, cut_image, process_fields, draw_output
-
+    from number_recognition import show_imgs_for_nn
     # loading image
     original_img = cv2.imread('img/medium2.jpg', cv2.IMREAD_COLOR)
     start_time = time.time()
@@ -135,6 +136,7 @@ def test_recognition() -> None:
 
     # Draw output to image
     draw_output(detected_array,np.ones((9,9),dtype="uint8"), warped)
+    show_imgs_for_nn()
     cv2.waitKey(0)
 
     print('Time spent on solving: {}'.format(time.time() - start_time))

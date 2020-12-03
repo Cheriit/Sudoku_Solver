@@ -12,11 +12,11 @@ from skimage import util
 from helpers import rescale_img
 
 model = None
-
+images_for_nn=[]
 
 def predict(cut_digit_img: np.ndarray) -> int:
     global model
-
+    global images_for_nn
     minmax = (cut_digit_img.flatten().min(), cut_digit_img.flatten().max())
     cut_digit_img = rescale_intensity(cut_digit_img, minmax)
     cut_digit_img = util.invert(cut_digit_img)
@@ -29,9 +29,8 @@ def predict(cut_digit_img: np.ndarray) -> int:
         model = load_model("number_recognition_model/number_recognition_model.h5")
 
     image_for_nn = process_img(cut_digit_img)
-    #img_for_show=image_for_nn.reshape(28,28)
-    #cv2.imshow('image_for_nn',img_for_show)
-    #cv2.waitKey(1)
+    img_for_show=image_for_nn.reshape(28,28)
+    images_for_nn.append(img_for_show)
     res = model.predict([image_for_nn])[0]
     return np.argmax(res)
 
@@ -52,3 +51,7 @@ def process_img(cut_digit_img: np.ndarray) -> np.ndarray:
     new_image = new_image.reshape(1, 28, 28, 1)
     new_image[new_image < 0.2] = 0
     return new_image
+
+
+def show_imgs_for_nn():
+    cv2.imshow('imgs for nn',np.hstack(images_for_nn))

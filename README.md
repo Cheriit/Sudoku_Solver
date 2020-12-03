@@ -3,9 +3,10 @@ Simple project solving 9x9 sudoku from file.
 Project created for Communication Human-Computer classes.
 
 ### Installation (conda required):
-- For new environment: `conda create --name <name> python=3.6 --file spec-file.txt ` 
-- For existing environment: `conda install --name <name> --file spec-file.txt` 
-
+- Add conda forge `conda config --add channels conda-forge`
+- For new environment: `conda env create -f environment.yml ` 
+- For existing environment: `conda env update --prefix ./env --file environment.yml --prune` 
+- Env activation `conda activate SudokuSolver`
 ### Running project 
 - `conda activate <name>`
 - Commands:
@@ -16,7 +17,7 @@ Project created for Communication Human-Computer classes.
 - `jupyter-notebook` for generating number recognition model
 
 ### Dependencies export:
-- `conda list --explicit > spec-file-windows.txt`
+- `conda env export > environment.yml`
 
 Project created by:
 - [@Cheriit](https://github.com/Cheriit/)

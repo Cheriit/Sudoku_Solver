@@ -18,10 +18,12 @@ def predict(cut_digit_img: np.ndarray) -> int:
     global model
     global images_for_nn
     minmax = (cut_digit_img.flatten().min(), cut_digit_img.flatten().max())
+
     cut_digit_img = rescale_intensity(cut_digit_img, minmax)
     cut_digit_img = util.invert(cut_digit_img)
-    cut_digit_img = rescale_img(cut_digit_img, 24)
-    _, cut_digit_img = cv2.threshold(cut_digit_img, 110, 255, cv2.THRESH_BINARY) # Possible deletion
+    cut_digit_img = cv2.erode(cut_digit_img, np.ones((2, 2), np.uint8), iterations=6)
+    cut_digit_img = rescale_img(cut_digit_img, 16)
+    #_, cut_digit_img = cv2.threshold(cut_digit_img, 110, 255, cv2.THRESH_BINARY) # Possible deletion
 
     # cut_digit_img = Image.fromarray(np.uint8(cut_digit_img))
 
@@ -54,4 +56,5 @@ def process_img(cut_digit_img: np.ndarray) -> np.ndarray:
 
 
 def show_imgs_for_nn():
-    cv2.imshow('imgs for nn',np.hstack(images_for_nn))
+    if(len(images_for_nn)>0):
+        cv2.imshow('imgs for nn',np.hstack(images_for_nn))

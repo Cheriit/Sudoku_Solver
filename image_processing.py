@@ -150,15 +150,16 @@ def threshold_field_image(img: np.ndarray) -> np.ndarray:
     img = cv2.fastNlMeansDenoising(img, h=5)
     avr = np.average(img)
     sd = np.std(img)
+    errode_iterations=1
     if avr > 200:
         ret, img = cv2.threshold(img, avr, 255, cv2.THRESH_BINARY_INV)
-        img = cv2.erode(img, np.ones((2, 2), np.uint8), iterations=1)
+        img = cv2.erode(img, np.ones((2, 2), np.uint8), iterations=errode_iterations)
     elif avr > 160:
         ret, img = cv2.threshold(img, avr - 1.5 * sd, 255, cv2.THRESH_BINARY_INV)
-        img = cv2.erode(img, np.ones((2, 2), np.uint8), iterations=1)
+        img = cv2.erode(img, np.ones((2, 2), np.uint8), iterations=errode_iterations)
     else:
         ret, img = cv2.threshold(img, avr - 1.3 * sd, 255, cv2.THRESH_BINARY_INV)
-        img = cv2.erode(img, np.ones((2, 2), np.uint8), iterations=1)
+        img = cv2.erode(img, np.ones((2, 2), np.uint8), iterations=errode_iterations)
     # crop the image to eliminate sudoku border causing us a headache
     dim = img.shape
     img = img[int(0.02 * dim[0]):int(0.98 * dim[0]), int(0.02 * dim[1]):int(0.98 * dim[1])]

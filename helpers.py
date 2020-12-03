@@ -33,3 +33,11 @@ def order_image_points(four_points):
     rect[3] = four_points[np.argmax(diff)]
 
     return rect
+
+
+def wait_for_window_close_or_keypress():
+    while cv2.getWindowProperty('drawOutput', cv2.WND_PROP_VISIBLE) > 0:
+        keyCode = cv2.waitKey(1)
+        if keyCode>=0:
+            break
+    exit(0)

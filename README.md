@@ -3,7 +3,6 @@ Simple project solving 9x9 sudoku from file.
 Project created for Communication Human-Computer classes.
 
 ### Installation (conda required):
-- Add conda forge `conda config --add channels conda-forge`
 - For new environment: `conda env create -f environment.yml ` 
 - For existing environment: `conda env update --prefix ./env --file environment.yml --prune` 
 - Env activation `conda activate SudokuSolver`

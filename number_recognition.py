@@ -21,8 +21,8 @@ def predict(cut_digit_img: np.ndarray) -> int:
 
     cut_digit_img = rescale_intensity(cut_digit_img, minmax)
     cut_digit_img = util.invert(cut_digit_img)
-    cut_digit_img = cv2.erode(cut_digit_img, np.ones((2, 2), np.uint8), iterations=6)
-    cut_digit_img = rescale_img(cut_digit_img, 16)
+    cut_digit_img = cv2.erode(cut_digit_img, np.ones((3, 3), np.uint8), iterations=6)
+    cut_digit_img = rescale_img(cut_digit_img, 18)
     #_, cut_digit_img = cv2.threshold(cut_digit_img, 110, 255, cv2.THRESH_BINARY) # Possible deletion
 
     # cut_digit_img = Image.fromarray(np.uint8(cut_digit_img))
@@ -50,7 +50,7 @@ def process_img(cut_digit_img: np.ndarray) -> np.ndarray:
         14 - floor(old_image_cols / 2):14 + ceil(old_image_cols / 2)
     ] = cut_digit_img
 
-    new_image = new_image.reshape(1, 28, 28, 1)
+    new_image = new_image.reshape(1, 784)
     new_image[new_image < 0.2] = 0
     return new_image
 

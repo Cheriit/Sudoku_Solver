@@ -56,13 +56,14 @@ def detect_board(thresholded_img: np.ndarray, img: np.ndarray) -> np.ndarray:
     # drawing the largest detected in red (doesn't have to be 4-sided)
     if board_contour is None or debug:
         cv2.drawContours(img, [found_contours[0]], -1, (0, 0, 255), 3)
-
+        if board_contour is not None:
+            cv2.drawContours(img, [board_contour], -1, (0,255, 0), 3)
     # draw found board_contour in green
-    if board_contour is None:
+    if board_contour is None or debug:
         thresholded_color_temp = cv2.cvtColor(thresholded_img, cv2.COLOR_GRAY2BGR)
         to_show = np.hstack((thresholded_color_temp, img))
-        cv2.imshow("finding board", rescale_img(to_show))
-        raise ValueError("Can not find board on image")
+        cv2.imshow("finding board", rescale_img(to_show,600))
+        if board_contour is None: ValueError("Can not find board on image")
 
     warped = warp_perspective(original_for_warp, board_contour)
     return warped
@@ -112,7 +113,7 @@ def process_fields(sudoku_field_img_array: np.ndarray) -> np.ndarray:
                     x, y, w, h = cv2.boundingRect(c)
                     # if the contour is sufficiently large, it must be a digit
                     # height and width limiters to eliminate grid lines detection
-                    if (dim[1] * 5 // 28 < w < dim[1] * 25 // 28 and dim[1] * 1 // 28 <= x <= dim[
+                    if (dim[1] * 4 // 28 < w < dim[1] * 25 // 28 and dim[1] * 1 // 28 <= x <= dim[
                         1] * 27 // 28) and \
                             (dim[0] * 10 // 28 < h < dim[0] * 25 // 28 and dim[0] * 1 // 28 <= y <= dim[
                                 0] * 27 // 28):

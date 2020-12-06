@@ -12,16 +12,19 @@ from skimage import util
 from helpers import rescale_img
 
 model = None
+images_for_nr=[]
 images_for_nn=[]
 
 def predict(cut_digit_img: np.ndarray) -> int:
     global model
     global images_for_nn
+    global images_for_nr
+    images_for_nr.append(rescale_img(cut_digit_img,28))
     minmax = (cut_digit_img.flatten().min(), cut_digit_img.flatten().max())
 
     cut_digit_img = rescale_intensity(cut_digit_img, minmax)
     cut_digit_img = util.invert(cut_digit_img)
-    cut_digit_img = cv2.erode(cut_digit_img, np.ones((3, 3), np.uint8), iterations=6)
+    cut_digit_img = cv2.erode(cut_digit_img, np.ones((3, 3), np.uint8), iterations=1)
     cut_digit_img = rescale_img(cut_digit_img, 18)
     #_, cut_digit_img = cv2.threshold(cut_digit_img, 110, 255, cv2.THRESH_BINARY) # Possible deletion
 
@@ -58,3 +61,5 @@ def process_img(cut_digit_img: np.ndarray) -> np.ndarray:
 def show_imgs_for_nn():
     if(len(images_for_nn)>0):
         cv2.imshow('imgs for nn',np.hstack(images_for_nn))
+    if len(images_for_nr)>0:
+        cv2.imshow('imgs for nr',np.hstack(images_for_nr))

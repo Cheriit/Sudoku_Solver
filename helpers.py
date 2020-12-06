@@ -35,9 +35,16 @@ def order_image_points(four_points):
     return rect
 
 
-def wait_for_window_close_or_keypress():
-    while cv2.getWindowProperty('drawOutput', cv2.WND_PROP_VISIBLE) > 0:
+def wait_for_window_close_or_keypress(exit_after_wait=True,window='drawOutput'):
+    while cv2.getWindowProperty(window, cv2.WND_PROP_VISIBLE) > 0:
         keyCode = cv2.waitKey(1)
         if keyCode>=0:
             break
-    exit(0)
+    if exit_after_wait:
+        exit(0)
+
+def wait_for_key_on_value_error(message):
+    print("ValueError"+message)
+    wait_for_window_close_or_keypress(exit_after_wait=False,window='findBoard')
+    #cv2.waitKey(0)
+    raise(ValueError(message))

@@ -120,7 +120,9 @@ def test_recognition() -> None:
     from number_recognition import show_imgs_for_nn
     from helpers import wait_for_window_close_or_keypress
     # loading image
-    original_img = cv2.imread('img/medium2.jpg', cv2.IMREAD_COLOR)
+    original_img = cv2.imread('img/hard10.jpg', cv2.IMREAD_COLOR)
+    #easy3
+
     start_time = time.time()
 
     # Thresholding to find the board
@@ -144,6 +146,36 @@ def test_recognition() -> None:
     print('Detected board layout: \n', detected_array)
     wait_for_window_close_or_keypress()
 
+def test_save_img() -> None:
+    import cv2
+    from image_processing import threshold_board_image, cut_image, process_fields, draw_output
+    from number_recognition import show_imgs_for_nn
+    from helpers import wait_for_window_close_or_keypress,rescale_img
+    # loading image
+    import os
+    for photo in os.listdir('img/'):
+        print(photo)
+        original_img = cv2.imread('save_img/'+photo, cv2.IMREAD_COLOR)
+        original_img=rescale_img(original_img,800)
+        # Thresholding to find the board
+        thresholded = threshold_board_image(original_img)
+
+        # Cutting the board to separate fields
+        sudoku_field_img_array,warped = cut_image(thresholded, original_img, enable_debug=True, enable_save=True, saveName=photo)
+        #if sudoku_field_img_array is None:
+        #    cv2.waitKey(0)
+        #    exit()
+
+    # Find digits in thresholded images and recognize them
+    #detected_array = process_fields(sudoku_field_img_array)
+
+    # Draw output to image
+    #draw_output(detected_array,np.ones((9,9),dtype="uint8"), warped)
+    #show_imgs_for_nn()
+
+
+
+
 if __name__ == "__main__":
     if len(sys.argv) == 2:
 
@@ -152,6 +184,9 @@ if __name__ == "__main__":
 
         elif sys.argv[1] == "test":
             test()
+
+        elif sys.argv[1] == "test_save_img":
+            test_save_img()
 
         else:
             raise NameError("Incorrect argument name")

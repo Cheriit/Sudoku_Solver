@@ -8,6 +8,7 @@ import number_recognition
 from helpers import order_image_points, inverse, rescale_img
 import helpers
 debug = False
+save = False
 
 
 def warp_perspective(img: np.ndarray, board_contour: np.ndarray) -> np.ndarray:
@@ -62,12 +63,16 @@ def detect_board(thresholded_img: np.ndarray, img: np.ndarray) -> np.ndarray:
     if board_contour is None or debug:
         thresholded_color_temp = cv2.cvtColor(thresholded_img, cv2.COLOR_GRAY2BGR)
         to_show = np.hstack((thresholded_color_temp, img))
-        cv2.imshow("findBoard", rescale_img(to_show,600))
-        if board_contour is None:
-            if debug:
-                helpers.wait_for_key_on_value_error("Can not find board on image")
-            else:
-                raise(ValueError("Can not find board on image"))
+        if save:
+            cv2.imwrite(save_name,to_show)
+            return None
+        else:
+            cv2.imshow("findBoard", rescale_img(to_show,600))
+            if board_contour is None:
+                if debug:
+                    helpers.wait_for_key_on_value_error("Can not find board on image")
+                else:
+                    raise(ValueError("Can not find board on image"))
 
     warped = warp_perspective(original_for_warp, board_contour)
     return warped
@@ -117,9 +122,9 @@ def process_fields(sudoku_field_img_array: np.ndarray) -> np.ndarray:
                     x, y, w, h = cv2.boundingRect(c)
                     # if the contour is sufficiently large, it must be a digit
                     # height and width limiters to eliminate grid lines detection
-                    if (dim[1] * 4 // 28 < w < dim[1] * 25 // 28 and dim[1] * 1 // 28 <= x <= dim[
+                    if (dim[1] * 3 // 28 < w < dim[1] * 25 // 28 and dim[1] * 1 // 28 <= x <= dim[
                         1] * 27 // 28) and \
-                            (dim[0] * 10 // 28 < h < dim[0] * 25 // 28 and dim[0] * 1 // 28 <= y <= dim[
+                            (dim[0] * 5 // 28 < h < dim[0] * 25 // 28 and dim[0] * 1 // 28 <= y <= dim[
                                 0] * 27 // 28):
                         found = (x, y, w, h)
                         break
@@ -139,19 +144,24 @@ def process_fields(sudoku_field_img_array: np.ndarray) -> np.ndarray:
     return np.array(recognized_fields).reshape(9, 9)
 
 
-def cut_image(thresholded_img: np.ndarray, original_img: np.ndarray, rescale: bool = False, enable_debug: bool = False):
+def cut_image(thresholded_img: np.ndarray, original_img: np.ndarray, enable_debug: bool = False, enable_save = False, saveName=None):
     global debug
+    global save
+    global save_name
     debug = enable_debug
+    save = enable_save
+    save_name = saveName
 
-    if rescale:
-        thresholded_img = rescale_img(thresholded_img)
-        original_img = rescale_img(original_img)
 
     warped = detect_board(thresholded_img, original_img)
-    return cut_out_fields(warped), warped
+    if save:
+        return None,None
+    else:
+        return cut_out_fields(warped), warped
 
 
 def threshold_field_image(img: np.ndarray) -> np.ndarray:
+    #cv2.waitKey(0)
     img = cv2.fastNlMeansDenoising(img, h=5)
     avr = np.average(img)
     sd = np.std(img)
@@ -192,7 +202,7 @@ def threshold_board_image(img: np.ndarray) -> np.ndarray:
         img = inverse(img)
         ret, img = cv2.threshold(img, avr - 1.3 * sd, 255, cv2.THRESH_BINARY_INV)
 
-    lines = cv2.HoughLinesP(img, 1, np.pi / 180, 100, minLineLength=120, maxLineGap=60)
+    lines = cv2.HoughLinesP(img, 1, np.pi / 180, 100, minLineLength=120, maxLineGap=10)
     for line in lines:
         x1, y1, x2, y2 = line[0]
         cv2.line(img, (x1, y1), (x2, y2), 255, 6)

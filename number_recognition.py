@@ -10,6 +10,7 @@ from skimage.exposure import rescale_intensity
 from skimage import util
 
 from helpers import rescale_img
+import helpers
 
 model = None
 images_for_nr=[]
@@ -26,6 +27,10 @@ def predict(cut_digit_img: np.ndarray) -> int:
     cut_digit_img = util.invert(cut_digit_img)
     cut_digit_img = cv2.erode(cut_digit_img, np.ones((3, 1), np.uint8), iterations=6)
     cut_digit_img = rescale_img(cut_digit_img, 18)
+    if len(cut_digit_img[0])>28:
+        helpers.wait_for_key_on_value_error("digit wider then its height! maybe board detection problem?")
+
+
     #_, cut_digit_img = cv2.threshold(cut_digit_img, 110, 255, cv2.THRESH_BINARY) # Possible deletion
 
     # cut_digit_img = Image.fromarray(np.uint8(cut_digit_img))

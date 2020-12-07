@@ -6,7 +6,7 @@ import imutils
 import numpy as np
 import number_recognition
 from helpers import order_image_points, inverse, rescale_img
-
+import helpers
 debug = False
 
 
@@ -62,8 +62,12 @@ def detect_board(thresholded_img: np.ndarray, img: np.ndarray) -> np.ndarray:
     if board_contour is None or debug:
         thresholded_color_temp = cv2.cvtColor(thresholded_img, cv2.COLOR_GRAY2BGR)
         to_show = np.hstack((thresholded_color_temp, img))
-        cv2.imshow("finding board", rescale_img(to_show,600))
-        if board_contour is None: ValueError("Can not find board on image")
+        cv2.imshow("findBoard", rescale_img(to_show,600))
+        if board_contour is None:
+            if debug:
+                helpers.wait_for_key_on_value_error("Can not find board on image")
+            else:
+                raise(ValueError("Can not find board on image"))
 
     warped = warp_perspective(original_for_warp, board_contour)
     return warped

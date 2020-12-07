@@ -21,6 +21,8 @@ def inverse(image: np.ndarray) -> np.ndarray:
     return 255 - image
 
 
+# snippet used from:
+# https://www.pyimagesearch.com/2014/05/05/building-pokedex-python-opencv-perspective-warping-step-5-6/
 def order_image_points(four_points):
     rect = np.zeros((4, 2), dtype="float32")
 
@@ -57,3 +59,7 @@ def load_img(name, useAbsPath=False):
         original_img = cv2.imread('img/' + name, cv2.IMREAD_COLOR)
     original_img = rescale_img(original_img, 800)
     return original_img
+
+
+def save_img(save_name,stage,img):
+    cv2.imwrite('test_img/' + save_name[:-4] + '_' + stage + '.jpg', img)

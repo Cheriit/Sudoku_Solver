@@ -7,11 +7,15 @@ import numpy as np
 import number_recognition
 from helpers import order_image_points, inverse, rescale_img
 import helpers
+
 debug = False
 save = False
 warped_saved = None
+save_name = None
 
 
+# snippet used from:
+# https://www.pyimagesearch.com/2014/05/05/building-pokedex-python-opencv-perspective-warping-step-5-6/
 def warp_perspective(img: np.ndarray, board_contour: np.ndarray) -> np.ndarray:
     pts = board_contour.reshape(4, 2)
     rect = order_image_points(pts)
@@ -38,8 +42,6 @@ def warp_perspective(img: np.ndarray, board_contour: np.ndarray) -> np.ndarray:
 
 
 def detect_board(thresholded_img: np.ndarray, img: np.ndarray) -> np.ndarray:
-    original_for_warp = img.copy()
-
     # find contours in the thresholded image, keep only the 10 largest contours
     found_contours = cv2.findContours(thresholded_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     found_contours = imutils.grab_contours(found_contours)
@@ -55,28 +57,33 @@ def detect_board(thresholded_img: np.ndarray, img: np.ndarray) -> np.ndarray:
             board_contour = approximated_polygon
             break
 
-    # drawing the largest detected in red (doesn't have to be 4-sided)
-    if board_contour is None or debug:
+    if debug or save:
+        # drawing the largest detected in red (doesn't have to be 4-sided)
         cv2.drawContours(img, [found_contours[0]], -1, (0, 0, 255), 3)
+        # draw found board_contour in green
         if board_contour is not None:
-            cv2.drawContours(img, [board_contour], -1, (0,255, 0), 3)
-    # draw found board_contour in green
-    if board_contour is None or debug:
+            cv2.drawContours(img, [board_contour], -1, (0, 255, 0), 3)
+        # prepare new images for debug/save
         thresholded_color_temp = cv2.cvtColor(thresholded_img, cv2.COLOR_GRAY2BGR)
         to_show = np.hstack((thresholded_color_temp, img))
-        if save:
-            cv2.imwrite(save_name,to_show)
-            return None
-        else:
-            cv2.imshow("findBoard", rescale_img(to_show,600))
-            if board_contour is None:
-                if debug:
-                    helpers.wait_for_key_on_value_error("Can not find board on image")
-                else:
-                    raise(ValueError("Can not find board on image"))
 
-    warped = warp_perspective(original_for_warp, board_contour)
-    return warped
+    if save:
+        helpers.save_img(save_name, '1_detection', to_show)
+        if board_contour is None:
+            return None
+
+    if debug:
+        thresholded_color_temp = cv2.cvtColor(thresholded_img, cv2.COLOR_GRAY2BGR)
+        to_show = np.hstack((thresholded_color_temp, img))
+        cv2.imshow("findBoard", rescale_img(to_show, 600))
+
+    if board_contour is None:
+        if debug:
+            helpers.wait_for_key_on_value_error("Can not find board on image")
+        else:
+            raise (ValueError("Can not find board on image"))
+
+    return board_contour
 
 
 def cut_out_fields(warped_original: np.ndarray) -> np.ndarray:
@@ -85,14 +92,25 @@ def cut_out_fields(warped_original: np.ndarray) -> np.ndarray:
     warped_gray = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
     sudoku_field_img_array = []
 
+    width=x//9
+    height=y//9
+
     for row in range(9):
         sudoku_field_img_array.append([])
         for column in range(9):
-            x_min = column * x // 9
+
+            x_min = column * x // 9 +1
             y_min = row * y // 9 + 1
-            x_max = (column + 1) * x // 9 - 1
-            y_max = (row + 1) * y // 9 - 1
+
+            # had numerical problems!!! IDK why!
+            # x_max = (column + 1) * x // 9 - 1
+            # y_max = (row + 1) * y // 9 - 1
+            # this works
+            x_max=x_min+width-1
+            y_max=y_min+height-1
+
             field_img = warped_gray[y_min:y_max, x_min:x_max]
+
             sudoku_field_img_array[-1].append(field_img)
 
             if debug:
@@ -107,15 +125,15 @@ def cut_out_fields(warped_original: np.ndarray) -> np.ndarray:
     return sudoku_field_img_array
 
 
-def process_fields(sudoku_field_img_array: np.ndarray) -> np.ndarray:
+def process_fields(sudoku_field_img_array: np.ndarray, enable_save=False, saveName=None) -> np.ndarray:
     recognized_fields = []
+    cut_digits_imgs = []
     for row_id in range(len(sudoku_field_img_array)):
         for col_id in range(len(sudoku_field_img_array[row_id])):
             original_img = sudoku_field_img_array[row_id][col_id]
             thresholded_img = threshold_field_image(original_img.copy())
-
-
             dim = thresholded_img.shape
+
             contours, _ = cv2.findContours(thresholded_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             found = None
             if len(contours) != 0:
@@ -123,29 +141,64 @@ def process_fields(sudoku_field_img_array: np.ndarray) -> np.ndarray:
                     x, y, w, h = cv2.boundingRect(c)
                     # if the contour is sufficiently large, it must be a digit
                     # height and width limiters to eliminate grid lines detection
-                    if (dim[1] * 3 // 28 < w < dim[1] * 25 // 28 and dim[1] * 1 // 28 <= x <= dim[
-                        1] * 27 // 28) and \
-                            (dim[0] * 5 // 28 < h < dim[0] * 25 // 28 and dim[0] * 1 // 28 <= y <= dim[
-                                0] * 27 // 28):
+                    if (dim[1] * 3 // 28 < w < dim[1] * 25 // 28
+                        and dim[1] * 1 // 28 <= x and x+w <= dim[1] * 27 // 28) \
+                        and (dim[0] * 5 // 28 < h < dim[0] * 25 // 28
+                        and dim[0] * 1 // 28 <= y and y+h <= dim[0] * 27 // 28):
                         found = (x, y, w, h)
                         break
 
             if found is None:
                 recognized_fields.append(0)
+                if enable_save or debug:
+                    cut_digits_imgs.append(np.array(np.zeros(dim, dtype='uint8')))
+
             else:
                 (x, y, w, h) = found
-                #marked_contour_img=cv2.cvtColor(thresholded_img, cv2.COLOR_GRAY2BGR)
-                #cv2.rectangle(marked_contour_img,(x,y),(x+w,y+h),(255,0,0),1)
-                #cv2.imshow('contours',marked_contour_img)
-                #cv2.waitKey(0)
+                # marked_contour_img=cv2.cvtColor(thresholded_img, cv2.COLOR_GRAY2BGR)
+                # cv2.rectangle(marked_contour_img,(x,y),(x+w,y+h),(255,0,0),1)
+                # cv2.imshow('contours',marked_contour_img)
+                # cv2.waitKey(0)
                 cut_digit = original_img[y:y + h, x:x + w]
-                digit = number_recognition.predict(cut_digit)
+                if enable_save:
+                    #skip digit recognition
+                    digit = 0
+                else:
+                    digit = number_recognition.predict(cut_digit)
+
                 recognized_fields.append(digit)
+                temp_digit = inverse(np.zeros(dim, dtype='uint8'))
+
+                # try to cut the digit with some space around it
+                try:
+                    offset_param = 0.1
+                    yo = int(h * offset_param*0.5)
+                    xo = int(w * offset_param)
+                    temp_digit[y - yo:y + h + yo, x - xo:x + w + xo] = original_img[y - yo:y + h + yo,
+                                                                       x - xo:x + w + xo]
+                # if it failed then do it then failback to old method
+                except ValueError:
+                    print('tried to cut the digit a bit wider and failed! failback to old method')
+                    temp_digit[y:y + h, x:x + w] = original_img[y:y + h, x:x + w]
+                if enable_save or debug:
+                    cut_digits_imgs.append(np.array(inverse(temp_digit)))
+
+    if enable_save or debug:
+        # workaround for np.reshape going wild!
+        reshaped=[]
+        for i in range(9):
+            reshaped.append(cut_digits_imgs[i*9:(i+1)*9])
+
+        cut_digits_imgs = np.vstack([np.hstack(row) for row in reshaped])
+        if enable_save:
+            helpers.save_img(saveName,'2-digitExtraction',cut_digits_imgs)
+        elif debug:
+            cv2.imshow('cutDigits', cut_digits_imgs)
 
     return np.array(recognized_fields).reshape(9, 9)
 
 
-def cut_image(original_img: np.ndarray, enable_debug: bool = False, enable_save = False, saveName=None):
+def cut_image(original_img: np.ndarray, enable_debug: bool = False, enable_save=False, saveName=None):
     global debug
     global save
     global save_name
@@ -154,21 +207,24 @@ def cut_image(original_img: np.ndarray, enable_debug: bool = False, enable_save 
     save = enable_save
     save_name = saveName
 
+    original_for_warp = original_img.copy()
     thresholded_img = threshold_board_image(original_img)
-    warped = detect_board(thresholded_img, original_img)
-    warped_saved=warped.copy()
-    if save:
+    board_contour = detect_board(thresholded_img, original_img)
+
+    # detect_board() only returns None if saving and board wasn't found
+    if board_contour is None:
         return None
     else:
+        warped = warp_perspective(original_for_warp, board_contour)
+        warped_saved = warped.copy()
         return cut_out_fields(warped)
 
 
 def threshold_field_image(img: np.ndarray) -> np.ndarray:
-    #cv2.waitKey(0)
     img = cv2.fastNlMeansDenoising(img, h=5)
     avr = np.average(img)
     sd = np.std(img)
-    errode_iterations=1
+    errode_iterations = 1
     if avr > 200:
         ret, img = cv2.threshold(img, avr, 255, cv2.THRESH_BINARY_INV)
         img = cv2.erode(img, np.ones((2, 2), np.uint8), iterations=errode_iterations)
@@ -212,28 +268,27 @@ def threshold_board_image(img: np.ndarray) -> np.ndarray:
     return img
 
 
-def draw_text_centered(image,x,y,text):
+def draw_text_centered(image, x, y, text):
     dim = image.shape
     font = cv2.FONT_HERSHEY_SIMPLEX
-    thickness=3
+    thickness = 3
     scale = 0.07  # this value can be from 0 to 1 (0,1] to change the size of the text relative to the image
     fontScale = min(dim[1], dim[0]) / 25 * scale
     textsize = cv2.getTextSize(text, font, fontScale, thickness)[0]
     textX = int(x - (textsize[0] / 2))
     textY = int(y + (textsize[1] / 2))
-    #cv2.rectangle(image, (textX, textY), (textX + textsize[0], textY - textsize[1]), (0, 0, 255))
+    # cv2.rectangle(image, (textX, textY), (textX + textsize[0], textY - textsize[1]), (0, 0, 255))
     cv2.putText(image, text, (textX, textY), font, fontScale, (128, 0, 0), thickness)
 
 
-def draw_output(detected_array: np.ndarray,solved_array: np.ndarray):
+def draw_output(detected_array: np.ndarray, solved_array: np.ndarray):
     warped = rescale_img(warped_saved, 800)
     dim = warped.shape
     for row in range(9):
         for col in range(9):
-            if detected_array[col, row]==0:
-                digit_center_x= dim[1] // 18 + dim[1]//9 * row
-                digit_center_y= dim[0] // 18 + dim[0]//9 * col
+            if detected_array[col, row] == 0:
+                digit_center_x = dim[1] // 18 + dim[1] // 9 * row
+                digit_center_y = dim[0] // 18 + dim[0] // 9 * col
                 text = str(solved_array[col, row])
-                draw_text_centered(warped,digit_center_x,digit_center_y, text)
+                draw_text_centered(warped, digit_center_x, digit_center_y, text)
     cv2.imshow('drawOutput', warped)
-

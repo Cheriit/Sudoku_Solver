@@ -28,6 +28,7 @@ def predict(cut_digit_img: np.ndarray) -> int:
     cut_digit_img = cv2.erode(cut_digit_img, np.ones((3, 1), np.uint8), iterations=1)
     cut_digit_img = rescale_img(cut_digit_img, 18)
     if len(cut_digit_img[0])>28:
+        return 0
         helpers.wait_for_key_on_value_error("digit wider then its height! maybe board detection problem?")
 
 
@@ -67,6 +68,4 @@ def process_img(cut_digit_img: np.ndarray) -> np.ndarray:
 
 def show_imgs_for_nn():
     if(len(images_for_nn)>0):
-        cv2.imshow('imgs for nn',np.hstack(images_for_nn))
-    if len(images_for_nr)>0:
-        cv2.imshow('imgs for nr',np.hstack(images_for_nr))
+        cv2.imshow('imgsForNN',np.hstack(images_for_nn))

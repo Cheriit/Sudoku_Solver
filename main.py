@@ -5,6 +5,50 @@ import sys
 import numpy as np
 import solvers.backtracking as backtracking
 import time
+import cv2
+from number_recognition import show_imgs_for_nn
+from image_processing import threshold_board_image, cut_image, process_fields, draw_output
+from helpers import wait_for_window_close_or_keypress, load_img
+
+
+def main_test(image: str, use_abs_path=False, do_output_drawing=False, do_solving=False,
+              show_detected_board=False, main_enable_debug=False):
+    start_time = time.time()
+
+    if use_abs_path:
+        original_img = load_img(image, useAbsPath=True)
+    else:
+        original_img = load_img(image, useAbsPath=False)
+    if original_img is None:
+        raise ValueError("Image loading error!")
+
+    # process original img
+    sudoku_field_img_array = cut_image(original_img, enable_debug=main_enable_debug)
+    if sudoku_field_img_array is None:
+        raise ValueError("Board not found")
+
+    detected_array = process_fields(sudoku_field_img_array)
+    if show_detected_board:
+        print('Detected board layout: \n', detected_array)
+
+    # sudoku solving
+    solved_array = None
+    if do_solving:
+        alg = backtracking.Basic(np.array(detected_array))
+        if not alg.solve():
+            raise ValueError("Cannot solve sudoku")
+        else:
+            solved_array = alg.grid
+
+    # draw the output to the original image
+    if do_output_drawing:
+        if solved_array is None:
+            solved_array = np.ones((9, 9), dtype="uint8")
+        draw_output(detected_array, solved_array)
+        show_imgs_for_nn()
+        wait_for_window_close_or_keypress()
+
+    print('Time spent: {}'.format(time.time() - start_time))
 
 
 def test_solver(solver_type: str) -> None:
@@ -37,127 +81,26 @@ def test_solver(solver_type: str) -> None:
 
 
 def solve(image_path: str) -> None:
-    import cv2
-    from image_processing import threshold_board_image, cut_image, process_fields, draw_output
-    from helpers import wait_for_window_close_or_keypress,load_img
-    # loading image
-    original_img = load_img(image_path, useAbsPath=True)
-
-    # thresholding and cutting the board to separate fields
-    sudoku_field_img_array = cut_image(original_img)
-    if sudoku_field_img_array is None:
-        raise ValueError("Board not found")
-
-    # Find digits in thresholded images and recognize them
-    detected_array = process_fields(sudoku_field_img_array)
-
-    # Solve the sudoku
-    alg = backtracking.Basic(np.array(detected_array))
-    if not alg.solve():
-        raise ValueError("Cannot solve sudoku")
-
-    # draw the output to the original image
-    draw_output(detected_array,alg.grid)
-    wait_for_window_close_or_keypress()
+    main_test(image_path, use_abs_path=True, do_output_drawing=True, do_solving=True)
 
 
 def test() -> None:
-    import cv2
-    from image_processing import threshold_board_image, cut_image, process_fields, draw_output
-    from number_recognition import show_imgs_for_nn
-    from helpers import wait_for_window_close_or_keypress
-    start_time = time.time()
-
-    # loading image
-    original_img = cv2.imread('img/medium2.jpg', cv2.IMREAD_COLOR)
-
-
-    # Thresholding to find the board
-    thresholded = threshold_board_image(original_img)
-
-    # Cutting the board to separate fields
-    sudoku_field_img_array = cut_image(original_img, enable_debug=True)
-    if sudoku_field_img_array is None:
-        cv2.waitKey(0)
-        exit()
-
-    # Find digits in thresholded images and recognize them
-    detected_array = process_fields(sudoku_field_img_array)
-    # detected_array = np.array([
-    #     [0, 4, 0, 2, 0, 1, 0, 6, 0]
-    #     , [0, 0, 0, 0, 0, 0, 0, 0, 0]
-    #     , [9, 0, 5, 0, 0, 0, 3, 0, 7]
-    #     , [0, 0, 0, 0, 0, 0, 0, 0, 0]
-    #     , [5, 0, 7, 0, 8, 0, 1, 0, 4]
-    #     , [0, 1, 0, 0, 0, 0, 0, 9, 0]
-    #     , [0, 0, 1, 0, 0, 0, 6, 0, 0]
-    #     , [0, 0, 0, 7, 0, 5, 0, 0, 0]
-    #     , [6, 0, 8, 9, 0, 4, 5, 0, 3]
-    # ])
-    print('Detected board layout: \n', detected_array)
-
-    # Solve the sudoku
-    alg = backtracking.Basic(np.array(detected_array))
-    print('Did solver succeed in solving the sudoku: {}'.format(alg.solve()))
-    print('Solved sudoku board:\n', alg.grid)
-    print('Time spent on solving: {}'.format(time.time() - start_time))
-
-
-    # draw the output to the original image
-    draw_output(detected_array,alg.grid)
-    show_imgs_for_nn()
-    wait_for_window_close_or_keypress()
+    main_test("medium2.jpg", do_output_drawing=True, do_solving=True, show_detected_board=True)
 
 
 def test_recognition() -> None:
-    import cv2
-    from image_processing import threshold_board_image, cut_image, process_fields, draw_output
-    from number_recognition import show_imgs_for_nn
-    from helpers import wait_for_window_close_or_keypress,load_img
-    # loading image
-    original_img = load_img('medium2.jpg')
-    start_time = time.time()
+    main_test("hard4.jpg", do_output_drawing=True, main_enable_debug=True)
 
-    sudoku_field_img_array = cut_image(original_img, enable_debug=True)
-    if sudoku_field_img_array is None:
-        cv2.waitKey(0)
-        exit()
-
-    # Find digits in thresholded images and recognize them
-    detected_array = process_fields(sudoku_field_img_array)
-
-    # Draw output to image
-    draw_output(detected_array,np.ones((9,9),dtype="uint8"))
-    show_imgs_for_nn()
-
-
-    print('Time spent on solving: {}'.format(time.time() - start_time))
-    print('Detected board layout: \n', detected_array)
-    wait_for_window_close_or_keypress()
 
 def test_save_img() -> None:
-    import cv2
-    from image_processing import threshold_board_image, cut_image, process_fields, draw_output
-    from number_recognition import show_imgs_for_nn
-    from helpers import wait_for_window_close_or_keypress,rescale_img,load_img
-    # loading image
     import os
     for photo in os.listdir('img/'):
         print(photo)
-        original_img=load_img(photo)
-
-        # Cutting the board to separate fields
-        sudoku_field_img_array= cut_image(original_img, enable_debug=True, enable_save=True, saveName=photo)
-        #if sudoku_field_img_array is None:
-        #    cv2.waitKey(0)
-        #    exit()
-
-    # Find digits in thresholded images and recognize them
-    #detected_array = process_fields(sudoku_field_img_array)
-
-    # Draw output to image
-    #draw_output(detected_array,np.ones((9,9),dtype="uint8"))
-    #show_imgs_for_nn()
+        original_img = load_img(photo)
+        sudoku_field_img_array = cut_image(original_img, enable_debug=False, enable_save=True, saveName=photo)
+        if sudoku_field_img_array is not None:
+            detected_array = process_fields(sudoku_field_img_array, enable_save=True, saveName=photo)
+    exit(0)
 
 
 if __name__ == "__main__":

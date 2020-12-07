@@ -9,6 +9,7 @@ from helpers import order_image_points, inverse, rescale_img
 import helpers
 debug = False
 save = False
+warped_saved = None
 
 
 def warp_perspective(img: np.ndarray, board_contour: np.ndarray) -> np.ndarray:
@@ -144,20 +145,22 @@ def process_fields(sudoku_field_img_array: np.ndarray) -> np.ndarray:
     return np.array(recognized_fields).reshape(9, 9)
 
 
-def cut_image(thresholded_img: np.ndarray, original_img: np.ndarray, enable_debug: bool = False, enable_save = False, saveName=None):
+def cut_image(original_img: np.ndarray, enable_debug: bool = False, enable_save = False, saveName=None):
     global debug
     global save
     global save_name
+    global warped_saved
     debug = enable_debug
     save = enable_save
     save_name = saveName
 
-
+    thresholded_img = threshold_board_image(original_img)
     warped = detect_board(thresholded_img, original_img)
+    warped_saved=warped.copy()
     if save:
-        return None,None
+        return None
     else:
-        return cut_out_fields(warped), warped
+        return cut_out_fields(warped)
 
 
 def threshold_field_image(img: np.ndarray) -> np.ndarray:
@@ -208,6 +211,7 @@ def threshold_board_image(img: np.ndarray) -> np.ndarray:
         cv2.line(img, (x1, y1), (x2, y2), 255, 6)
     return img
 
+
 def draw_text_centered(image,x,y,text):
     dim = image.shape
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -221,9 +225,8 @@ def draw_text_centered(image,x,y,text):
     cv2.putText(image, text, (textX, textY), font, fontScale, (128, 0, 0), thickness)
 
 
-
-def draw_output(detected_array: np.ndarray,solved_array: np.ndarray, warped):
-    warped = rescale_img(warped, 800)
+def draw_output(detected_array: np.ndarray,solved_array: np.ndarray):
+    warped = rescale_img(warped_saved, 800)
     dim = warped.shape
     for row in range(9):
         for col in range(9):

@@ -37,14 +37,23 @@ def order_image_points(four_points):
 
 def wait_for_window_close_or_keypress(exit_after_wait=True,window='drawOutput'):
     while cv2.getWindowProperty(window, cv2.WND_PROP_VISIBLE) > 0:
-        keyCode = cv2.waitKey(1)
-        if keyCode>=0:
+        keycode = cv2.waitKey(1)
+        if keycode >= 0:
             break
     if exit_after_wait:
         exit(0)
 
+
 def wait_for_key_on_value_error(message):
     print("ValueError"+message)
     wait_for_window_close_or_keypress(exit_after_wait=False,window='findBoard')
-    #cv2.waitKey(0)
     raise(ValueError(message))
+
+
+def load_img(name, useAbsPath=False):
+    if useAbsPath:
+        original_img = cv2.imread(name, cv2.IMREAD_COLOR)
+    else:
+        original_img = cv2.imread('img/' + name, cv2.IMREAD_COLOR)
+    original_img = rescale_img(original_img, 800)
+    return original_img

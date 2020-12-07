@@ -7,7 +7,6 @@ import solvers.backtracking as backtracking
 import time
 
 
-
 def test_solver(solver_type: str) -> None:
     # Array for testing
     detected_array = [
@@ -37,19 +36,15 @@ def test_solver(solver_type: str) -> None:
     print('Solved sudoku board:\n', alg.grid)
 
 
-
 def solve(image_path: str) -> None:
     import cv2
     from image_processing import threshold_board_image, cut_image, process_fields, draw_output
-    from helpers import wait_for_window_close_or_keypress
+    from helpers import wait_for_window_close_or_keypress,load_img
     # loading image
-    original_img = cv2.imread(image_path, cv2.IMREAD_COLOR)
+    original_img = load_img(image_path, useAbsPath=True)
 
-    # Thresholding to find the board
-    thresholded = threshold_board_image(original_img)
-
-    # Cutting the board to separate fields
-    sudoku_field_img_array,warped = cut_image(thresholded, original_img)
+    # thresholding and cutting the board to separate fields
+    sudoku_field_img_array = cut_image(original_img)
     if sudoku_field_img_array is None:
         raise ValueError("Board not found")
 
@@ -62,7 +57,7 @@ def solve(image_path: str) -> None:
         raise ValueError("Cannot solve sudoku")
 
     # draw the output to the original image
-    draw_output(detected_array,alg.grid,warped)
+    draw_output(detected_array,alg.grid)
     wait_for_window_close_or_keypress()
 
 
@@ -81,7 +76,7 @@ def test() -> None:
     thresholded = threshold_board_image(original_img)
 
     # Cutting the board to separate fields
-    sudoku_field_img_array,warped = cut_image(thresholded, original_img, enable_debug=True)
+    sudoku_field_img_array = cut_image(original_img, enable_debug=True)
     if sudoku_field_img_array is None:
         cv2.waitKey(0)
         exit()
@@ -109,7 +104,7 @@ def test() -> None:
 
 
     # draw the output to the original image
-    draw_output(detected_array,alg.grid,warped)
+    draw_output(detected_array,alg.grid)
     show_imgs_for_nn()
     wait_for_window_close_or_keypress()
 
@@ -118,18 +113,12 @@ def test_recognition() -> None:
     import cv2
     from image_processing import threshold_board_image, cut_image, process_fields, draw_output
     from number_recognition import show_imgs_for_nn
-    from helpers import wait_for_window_close_or_keypress
+    from helpers import wait_for_window_close_or_keypress,load_img
     # loading image
-    original_img = cv2.imread('img/hard10.jpg', cv2.IMREAD_COLOR)
-    #easy3
-
+    original_img = load_img('medium2.jpg')
     start_time = time.time()
 
-    # Thresholding to find the board
-    thresholded = threshold_board_image(original_img)
-
-    # Cutting the board to separate fields
-    sudoku_field_img_array,warped = cut_image(thresholded, original_img, enable_debug=True)
+    sudoku_field_img_array = cut_image(original_img, enable_debug=True)
     if sudoku_field_img_array is None:
         cv2.waitKey(0)
         exit()
@@ -138,7 +127,7 @@ def test_recognition() -> None:
     detected_array = process_fields(sudoku_field_img_array)
 
     # Draw output to image
-    draw_output(detected_array,np.ones((9,9),dtype="uint8"), warped)
+    draw_output(detected_array,np.ones((9,9),dtype="uint8"))
     show_imgs_for_nn()
 
 
@@ -150,18 +139,15 @@ def test_save_img() -> None:
     import cv2
     from image_processing import threshold_board_image, cut_image, process_fields, draw_output
     from number_recognition import show_imgs_for_nn
-    from helpers import wait_for_window_close_or_keypress,rescale_img
+    from helpers import wait_for_window_close_or_keypress,rescale_img,load_img
     # loading image
     import os
     for photo in os.listdir('img/'):
         print(photo)
-        original_img = cv2.imread('save_img/'+photo, cv2.IMREAD_COLOR)
-        original_img=rescale_img(original_img,800)
-        # Thresholding to find the board
-        thresholded = threshold_board_image(original_img)
+        original_img=load_img(photo)
 
         # Cutting the board to separate fields
-        sudoku_field_img_array,warped = cut_image(thresholded, original_img, enable_debug=True, enable_save=True, saveName=photo)
+        sudoku_field_img_array= cut_image(original_img, enable_debug=True, enable_save=True, saveName=photo)
         #if sudoku_field_img_array is None:
         #    cv2.waitKey(0)
         #    exit()
@@ -170,10 +156,8 @@ def test_save_img() -> None:
     #detected_array = process_fields(sudoku_field_img_array)
 
     # Draw output to image
-    #draw_output(detected_array,np.ones((9,9),dtype="uint8"), warped)
+    #draw_output(detected_array,np.ones((9,9),dtype="uint8"))
     #show_imgs_for_nn()
-
-
 
 
 if __name__ == "__main__":

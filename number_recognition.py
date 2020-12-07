@@ -31,7 +31,8 @@ def predict(cut_digit_img: np.ndarray) -> int:
     # cut_digit_img = Image.fromarray(np.uint8(cut_digit_img))
 
     if model is None:
-        model = load_model("number_recognition_model/number_recognition_model.h5")
+        # model = load_model("number_recognition_model/number_recognition_model_conv.h5") # Conv model
+        model = load_model("number_recognition_model/number_recognition_model.h5") # Dense model
 
     image_for_nn = process_img(cut_digit_img)
     img_for_show=image_for_nn.reshape(28,28)
@@ -53,7 +54,8 @@ def process_img(cut_digit_img: np.ndarray) -> np.ndarray:
         14 - floor(old_image_cols / 2):14 + ceil(old_image_cols / 2)
     ] = cut_digit_img
 
-    new_image = new_image.reshape(1, 784)
+    # new_image = new_image.reshape(1, 28, 28, 1) # Conv model
+    new_image = new_image.reshape(1, 784) # Dense model
     new_image[new_image < 0.2] = 0
     return new_image
 

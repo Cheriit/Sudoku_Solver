@@ -13,6 +13,7 @@ Project created for Communication Human-Computer classes.
     - `python main.py test` - test complete sudoku solving program
     - `python main.py test_recognition` -  test number recognition from image
     - `python main.py test_solver <algorithm>` - test sudoku solving algorithm (`basic` or `possibilities`)
+    - `python main.py test_save_img` - save images for every stage of processing each input image (output generates to folder test_img) 
 - `jupyter-notebook` for generating number recognition model
 
 ### Dependencies export:

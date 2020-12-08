@@ -37,7 +37,7 @@ def order_image_points(four_points):
     return rect
 
 
-def wait_for_window_close_or_keypress(exit_after_wait=True,window='drawOutput'):
+def wait_for_window_close_or_keypress(exit_after_wait=True, window='drawOutput'):
     while cv2.getWindowProperty(window, cv2.WND_PROP_VISIBLE) > 0:
         keycode = cv2.waitKey(1)
         if keycode >= 0:
@@ -47,9 +47,9 @@ def wait_for_window_close_or_keypress(exit_after_wait=True,window='drawOutput'):
 
 
 def wait_for_key_on_value_error(message):
-    print("ValueError"+message)
-    wait_for_window_close_or_keypress(exit_after_wait=False,window='findBoard')
-    raise(ValueError(message))
+    print("ValueError" + message)
+    wait_for_window_close_or_keypress(exit_after_wait=False, window='findBoard')
+    raise (ValueError(message))
 
 
 def load_img(name, useAbsPath=False):
@@ -61,5 +61,17 @@ def load_img(name, useAbsPath=False):
     return original_img
 
 
-def save_img(save_name,stage,img):
-    cv2.imwrite('test_img/' + save_name[:-4] + '_' + stage + '.jpg', img)
+def save_img(save_name, stage, img):
+    cv2.imwrite('test_img/' + save_name[:-4] + stage + '.jpg', img)
+
+
+def reshape81to9x9(arr):
+    reshaped = []
+    for i in range(9):
+        reshaped.append(arr[i * 9:(i + 1) * 9])
+    return reshaped
+
+
+def many_fields_to_one_img(fields):
+    reshaped = reshape81to9x9(fields)
+    return np.vstack([np.hstack(row) for row in reshaped])

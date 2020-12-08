@@ -94,12 +94,23 @@ def test_recognition() -> None:
 
 def test_save_img() -> None:
     import os
+    try:
+        os.mkdir('test_img/')
+    except FileExistsError:
+        pass
+    for name in os.listdir('test_img/'):
+        os.remove('test_img/'+name)
     for photo in os.listdir('img/'):
         print(photo)
         original_img = load_img(photo)
         sudoku_field_img_array = cut_image(original_img, enable_debug=False, enable_save=True, saveName=photo)
         if sudoku_field_img_array is not None:
             detected_array = process_fields(sudoku_field_img_array, enable_save=True, saveName=photo)
+            solved_array = np.ones((9, 9), dtype="uint8")
+            draw_output(detected_array, solved_array, save_name=photo)
+
+
+
     exit(0)
 
 

@@ -68,7 +68,7 @@ def detect_board(thresholded_img: np.ndarray, img: np.ndarray) -> np.ndarray:
         to_show = np.hstack((thresholded_color_temp, img))
 
     if save:
-        helpers.save_img(save_name, '1_detection', to_show)
+        helpers.save_img(save_name, 'A_Detection', to_show)
         if board_contour is None:
             return None
 
@@ -86,7 +86,7 @@ def detect_board(thresholded_img: np.ndarray, img: np.ndarray) -> np.ndarray:
     return board_contour
 
 
-def cut_out_fields(warped_original: np.ndarray) -> np.ndarray:
+def cut_out_fields(warped_original: np.ndarray,save_name=None) -> np.ndarray:
     warped = warped_original.copy()
     y, x, _ = warped.shape
     warped_gray = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
@@ -113,25 +113,29 @@ def cut_out_fields(warped_original: np.ndarray) -> np.ndarray:
 
             sudoku_field_img_array[-1].append(field_img)
 
-            if debug:
+            if debug or save_name is not None:
                 # draw yellow squares for each field (just visualization) and their centers as red circles
                 warped = cv2.rectangle(
                     warped, (column * x // 9, row * y // 9), ((column + 1) * x // 9, (row + 1) * y // 9), (0, 255, 255),
                     1)
                 warped = cv2.circle(warped, (x // 18 + column * x // 9, y // 18 + row * y // 9), radius=3,
                                     color=(0, 0, 255), thickness=1)
-    if debug:
-        cv2.imshow('cut board', rescale_img(warped,800))
+    if save_name is not None:
+        helpers.save_img(save_name,'B_Cutting',warped)
+    elif debug:
+        cv2.imshow('cut board', warped)
     return sudoku_field_img_array
 
 
 def process_fields(sudoku_field_img_array: np.ndarray, enable_save=False, saveName=None) -> np.ndarray:
     recognized_fields = []
     cut_digits_imgs = []
+    cut_digits_thresholded_imgs=[]
     for row_id in range(len(sudoku_field_img_array)):
         for col_id in range(len(sudoku_field_img_array[row_id])):
             original_img = sudoku_field_img_array[row_id][col_id]
             thresholded_img = threshold_field_image(original_img.copy())
+            cut_digits_thresholded_imgs.append(thresholded_img)
             dim = thresholded_img.shape
 
             contours, _ = cv2.findContours(thresholded_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -159,43 +163,42 @@ def process_fields(sudoku_field_img_array: np.ndarray, enable_save=False, saveNa
                 # cv2.rectangle(marked_contour_img,(x,y),(x+w,y+h),(255,0,0),1)
                 # cv2.imshow('contours',marked_contour_img)
                 # cv2.waitKey(0)
-                cut_digit = original_img[y:y + h, x:x + w]
-                if enable_save:
-                    #skip digit recognition
-                    digit = 0
-                else:
-                    digit = number_recognition.predict(cut_digit)
-
-                recognized_fields.append(digit)
-                temp_digit = inverse(np.zeros(dim, dtype='uint8'))
 
                 # try to cut the digit with some space around it
+                digit_field_for_debug = inverse(np.zeros(dim, dtype='uint8'))
                 try:
                     offset_param = 0.1
-                    yo = int(h * offset_param*0.5)
+                    yo = int(h * offset_param * 0.5)
                     xo = int(w * offset_param)
-                    temp_digit[y - yo:y + h + yo, x - xo:x + w + xo] = original_img[y - yo:y + h + yo,
+                    digit_field_for_debug[y - yo:y + h + yo, x - xo:x + w + xo] = original_img[y - yo:y + h + yo,
                                                                        x - xo:x + w + xo]
+                    cut_digit_for_nn=original_img[y - yo:y + h + yo, x - xo:x + w + xo]
                 # if it failed then do it then failback to old method
                 except ValueError:
-                    print('tried to cut the digit a bit wider and failed! failback to old method')
-                    temp_digit[y:y + h, x:x + w] = original_img[y:y + h, x:x + w]
+                    print('tried to cut the digit a bit bigger and failed! failback to old method')
+                    digit_field_for_debug[y:y + h, x:x + w] = original_img[y:y + h, x:x + w]
+                    cut_digit_for_nn = original_img[y:y + h, x:x + w]
+
+                if enable_save:
+                    #skip digit recognition
+                    digit = 1
+                else:
+                    digit = number_recognition.predict(cut_digit_for_nn)
+                recognized_fields.append(digit)
                 if enable_save or debug:
-                    cut_digits_imgs.append(np.array(inverse(temp_digit)))
+                    cut_digits_imgs.append(np.array(inverse(digit_field_for_debug)))
 
     if enable_save or debug:
-        # workaround for np.reshape going wild!
-        reshaped=[]
-        for i in range(9):
-            reshaped.append(cut_digits_imgs[i*9:(i+1)*9])
-
-        cut_digits_imgs = np.vstack([np.hstack(row) for row in reshaped])
+        cut_digits_imgs = helpers.inverse(helpers.many_fields_to_one_img(cut_digits_imgs))
+        cut_digits_thresholded_imgs=helpers.many_fields_to_one_img(cut_digits_thresholded_imgs)
         if enable_save:
-            helpers.save_img(saveName,'2-digitExtraction',cut_digits_imgs)
+            helpers.save_img(saveName, 'C_FieldThreshold', cut_digits_thresholded_imgs)
+            helpers.save_img(saveName,'D_DigitExtraction',cut_digits_imgs)
         elif debug:
             cv2.imshow('cutDigits', cut_digits_imgs)
+            cv2.imshow('cutDigitsThresholded', cut_digits_thresholded_imgs)
 
-    return np.array(recognized_fields).reshape(9, 9)
+    return helpers.reshape81to9x9(recognized_fields)
 
 
 def cut_image(original_img: np.ndarray, enable_debug: bool = False, enable_save=False, saveName=None):
@@ -216,8 +219,10 @@ def cut_image(original_img: np.ndarray, enable_debug: bool = False, enable_save=
         return None
     else:
         warped = warp_perspective(original_for_warp, board_contour)
+        dim=warped.shape
+        warped = warped[int(0.01 * dim[0]):int(0.99 * dim[0]), int(0.01 * dim[1]):int(0.99 * dim[1])]
         warped_saved = warped.copy()
-        return cut_out_fields(warped)
+        return cut_out_fields(warped,save_name=saveName)
 
 
 def threshold_field_image(img: np.ndarray) -> np.ndarray:
@@ -235,8 +240,8 @@ def threshold_field_image(img: np.ndarray) -> np.ndarray:
         ret, img = cv2.threshold(img, avr - 1.3 * sd, 255, cv2.THRESH_BINARY_INV)
         img = cv2.erode(img, np.ones((2, 2), np.uint8), iterations=errode_iterations)
     # crop the image to eliminate sudoku border causing us a headache
-    dim = img.shape
-    img = img[int(0.02 * dim[0]):int(0.98 * dim[0]), int(0.02 * dim[1]):int(0.98 * dim[1])]
+    #dim = img.shape
+    #img = img[int(0.02 * dim[0]):int(0.98 * dim[0]), int(0.02 * dim[1]):int(0.98 * dim[1])]
     return img
 
 
@@ -281,14 +286,17 @@ def draw_text_centered(image, x, y, text):
     cv2.putText(image, text, (textX, textY), font, fontScale, (128, 0, 0), thickness)
 
 
-def draw_output(detected_array: np.ndarray, solved_array: np.ndarray):
+def draw_output(detected_array: np.ndarray, solved_array: np.ndarray, save_name=None):
     warped = rescale_img(warped_saved, 800)
     dim = warped.shape
     for row in range(9):
         for col in range(9):
-            if detected_array[col, row] == 0:
+            if detected_array[col][row] == 0:
                 digit_center_x = dim[1] // 18 + dim[1] // 9 * row
                 digit_center_y = dim[0] // 18 + dim[0] // 9 * col
-                text = str(solved_array[col, row])
+                text = str(solved_array[col][row])
                 draw_text_centered(warped, digit_center_x, digit_center_y, text)
-    cv2.imshow('drawOutput', warped)
+    if save_name is not None:
+        helpers.save_img(save_name,'E_DrawOutput',warped)
+    else:
+        cv2.imshow('drawOutput', warped)

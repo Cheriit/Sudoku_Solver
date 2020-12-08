@@ -7,7 +7,7 @@ import solvers.backtracking as backtracking
 import time
 import cv2
 from number_recognition import show_imgs_for_nn
-from image_processing import threshold_board_image, cut_image, process_fields, draw_output
+from image_processing import threshold_board_image, cut_image, process_fields, draw_output,draw_detected
 from helpers import wait_for_window_close_or_keypress, load_img
 
 
@@ -29,7 +29,8 @@ def main_test(image: str, use_abs_path=False, do_output_drawing=False, do_solvin
 
     detected_array = process_fields(sudoku_field_img_array)
     if show_detected_board:
-        print('Detected board layout: \n', detected_array)
+        draw_detected(detected_array,None)
+        cv2.waitKey(0)
 
     # sudoku solving
     solved_array = None
@@ -44,6 +45,7 @@ def main_test(image: str, use_abs_path=False, do_output_drawing=False, do_solvin
     if do_output_drawing:
         if solved_array is None:
             solved_array = np.ones((9, 9), dtype="uint8")
+
         draw_output(detected_array, solved_array)
         show_imgs_for_nn()
         wait_for_window_close_or_keypress()
@@ -85,7 +87,7 @@ def solve(image_path: str) -> None:
 
 
 def test() -> None:
-    main_test("medium2.jpg", do_output_drawing=True, do_solving=True, show_detected_board=True)
+    main_test("easy6.jpg", do_output_drawing=True, do_solving=True, show_detected_board=True,main_enable_debug=True)
 
 
 def test_recognition() -> None:

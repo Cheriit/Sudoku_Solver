@@ -169,8 +169,10 @@ def process_fields(sudoku_field_img_array: np.ndarray, enable_save=False, saveNa
                 digit_field_for_debug = inverse(np.zeros(dim, dtype='uint8'))
                 try:
                     offset_param = 0.15
-                    yo = int(h * offset_param * 0.5)
-                    xo = int(w * offset_param)
+                    #yo = int(h * offset_param * 0.5)
+                    #xo = int(w * offset_param)
+                    yo=3
+                    xo=6
                     digit_field_for_debug[y - yo:y + h + yo, x - xo:x + w + xo] = original_img[y - yo:y + h + yo,
                                                                                   x - xo:x + w + xo]
                     cut_digit_for_nn = original_img[y - yo:y + h + yo, x - xo:x + w + xo]
@@ -223,7 +225,7 @@ def cut_image(original_img: np.ndarray, enable_debug: bool = False, enable_save=
         dim = warped.shape
         warped = warped[int(0.01 * dim[0]):int(0.99 * dim[0]), int(0.01 * dim[1]):int(0.99 * dim[1])]
         #warped = rescale_img(warped,500)
-        warped = cv2.erode(warped, np.ones((2, 2), dtype=np.uint8), iterations=2)
+        warped = cv2.erode(warped, np.ones((2, 2), dtype=np.uint8), iterations=1)
         warped_saved = warped.copy()
         return cut_out_fields(warped, save_name=saveName)
 
@@ -234,8 +236,8 @@ def threshold_field_image_rom(img):
     img = cv2.fastNlMeansDenoising(img, h=5)
     p2, p98 = np.percentile(img, (2, 98))
     img = rescale_intensity(img, in_range=(p2, p98))
-    _, img = cv2.threshold(img, 200, 255, cv2.THRESH_BINARY_INV)
-    img=cv2.erode(img, np.ones((3, 3), dtype=np.uint8), iterations=1)
+    _, img = cv2.threshold(img, 190, 255, cv2.THRESH_BINARY_INV)
+    #img=cv2.erode(img, np.ones((3, 3), dtype=np.uint8), iterations=1)
     img = cv2.erode(img, np.ones((2, 2), dtype=np.uint8), iterations=1)
     return img
 
@@ -315,3 +317,18 @@ def draw_output(detected_array: np.ndarray, solved_array: np.ndarray, save_name=
         helpers.save_img(save_name, 'E_DrawOutput', warped)
     else:
         cv2.imshow('drawOutput', warped)
+
+def draw_detected(detected_array: np.ndarray,save_name=None):
+    blank = cv2.cvtColor(helpers.inverse(np.zeros((800,800),dtype=np.uint8)), cv2.COLOR_GRAY2BGR)
+    dim = blank.shape
+    for row in range(9):
+        for col in range(9):
+            if detected_array[col][row] != 0:
+                digit_center_x = dim[1] // 18 + dim[1] // 9 * row
+                digit_center_y = dim[0] // 18 + dim[0] // 9 * col
+                text = str(detected_array[col][row])
+                draw_text_centered(blank, digit_center_x, digit_center_y, text)
+    if save_name is not None:
+        helpers.save_img(save_name, 'E_DrawDetected', blank)
+    else:
+        cv2.imshow('drawOutput', blank)

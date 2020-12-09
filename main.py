@@ -30,7 +30,6 @@ def main_test(image: str, use_abs_path=False, do_output_drawing=False, do_solvin
     detected_array = process_fields(sudoku_field_img_array)
     if show_detected_board:
         draw_detected(detected_array,None)
-        cv2.waitKey(0)
 
     print(np.array(detected_array))
     # sudoku solving
@@ -89,7 +88,7 @@ def solve(image_path: str) -> None:
 
 
 def test() -> None:
-    main_test("hard2.jpg", do_output_drawing=True, do_solving=True, show_detected_board=False,main_enable_debug=False)
+    main_test("easy0.jpg", do_output_drawing=False, do_solving=True, show_detected_board=False, main_enable_debug=False)
 
 
 def test_recognition() -> None:

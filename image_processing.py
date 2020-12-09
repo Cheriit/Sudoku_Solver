@@ -186,7 +186,13 @@ def process_fields(sudoku_field_img_array: np.ndarray, enable_save=False, saveNa
                     # skip digit recognition
                     digit = 1
                 else:
-                    digit = number_recognition.predict(cut_digit_for_nn)
+                    try:
+                        digit = number_recognition.predict(cut_digit_for_nn)
+                    except ZeroDivisionError or ValueError:
+                        recognized_fields.append(0)
+                        if enable_save or debug:
+                            cut_digits_imgs.append(np.array(np.zeros(dim, dtype='uint8')))
+                        continue
                     if digit == 0:
                         digit = 8
                 recognized_fields.append(digit)

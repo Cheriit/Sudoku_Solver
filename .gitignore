@@ -1,3 +1,6 @@
 .idea
 .ipynb_checkpoints
 __pycache__/
+logs/
+number_recognition_model/shap.png
+number_recognition_model/model.png

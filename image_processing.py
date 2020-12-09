@@ -187,6 +187,8 @@ def process_fields(sudoku_field_img_array: np.ndarray, enable_save=False, saveNa
                     digit = 1
                 else:
                     digit = number_recognition.predict(cut_digit_for_nn)
+                    if digit == 0:
+                        digit = 8
                 recognized_fields.append(digit)
                 if enable_save or debug:
                     cut_digits_imgs.append(np.array(inverse(digit_field_for_debug)))

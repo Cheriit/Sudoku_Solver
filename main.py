@@ -32,14 +32,16 @@ def main_test(image: str, use_abs_path=False, do_output_drawing=False, do_solvin
         draw_detected(detected_array,None)
         cv2.waitKey(0)
 
+    print(np.array(detected_array))
     # sudoku solving
     solved_array = None
     if do_solving:
-        alg = backtracking.Basic(np.array(detected_array))
+        alg = backtracking.Possible(np.array(detected_array))
         if not alg.solve():
             raise ValueError("Cannot solve sudoku")
         else:
             solved_array = alg.grid
+    print(np.array(solved_array))
 
     # draw the output to the original image
     if do_output_drawing:
@@ -87,7 +89,7 @@ def solve(image_path: str) -> None:
 
 
 def test() -> None:
-    main_test("easy6.jpg", do_output_drawing=True, do_solving=True, show_detected_board=True,main_enable_debug=True)
+    main_test("hard2.jpg", do_output_drawing=True, do_solving=True, show_detected_board=False,main_enable_debug=False)
 
 
 def test_recognition() -> None:

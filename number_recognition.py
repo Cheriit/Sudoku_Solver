@@ -25,14 +25,14 @@ def predict(cut_digit_img: np.ndarray) -> int:
 
     cut_digit_img = rescale_intensity(cut_digit_img, minmax)
     cut_digit_img = util.invert(cut_digit_img)
-    cut_digit_img = cv2.erode(cut_digit_img, np.ones((3, 1), np.uint8), iterations=1)
-    cut_digit_img = rescale_img(cut_digit_img, 18)
+    cut_digit_img = cv2.erode(cut_digit_img, np.ones((2, 1), np.uint8), iterations=3)
+    cut_digit_img = rescale_img(cut_digit_img, 24)
     if len(cut_digit_img[0])>28:
         return 0
         helpers.wait_for_key_on_value_error("digit wider then its height! maybe board detection problem?")
 
 
-    #_, cut_digit_img = cv2.threshold(cut_digit_img, 110, 255, cv2.THRESH_BINARY) # Possible deletion
+    _, cut_digit_img = cv2.threshold(cut_digit_img, 110, 255, cv2.THRESH_BINARY) # Possible deletion
 
     # cut_digit_img = Image.fromarray(np.uint8(cut_digit_img))
 

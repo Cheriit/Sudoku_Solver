@@ -15,6 +15,7 @@ class Basic(Solver):
             return self.solve(field + 1)
         else:
             for i in range(1, self.size + 1):
+                print("Processing ("+str(row)+", "+str(col)+"): "+str(i), end="\r")
                 if self.is_possible(field, i):
                     self.grid[row][col] = i
                     if self.solve(field + 1):
@@ -43,6 +44,7 @@ class Possible(Solver):
             start_possibilities_set = element_possibilities_set.copy()
             while len(element_possibilities_set):
                 possible_value = list(element_possibilities_set)[0]
+                print("Processing ("+str(row)+", "+str(col)+"): "+str(possible_value), end="\r")
                 self.grid[row][col] = possible_value
                 if self.remove_possibility(row, col, possible_value):
                     if self.solve(field + 1):

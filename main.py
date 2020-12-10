@@ -30,7 +30,7 @@ def main_test(image: str, use_abs_path=False, do_output_drawing=False, do_solvin
     detected_array = process_fields(sudoku_field_img_array)
     if show_detected_board:
         draw_detected(detected_array,None)
-
+    print("Detected array:\n")
     print(np.array(detected_array))
     # sudoku solving
     solved_array = None
@@ -40,6 +40,7 @@ def main_test(image: str, use_abs_path=False, do_output_drawing=False, do_solvin
             raise ValueError("Cannot solve sudoku")
         else:
             solved_array = alg.grid
+    print("\nSolved array:\n")
     print(np.array(solved_array))
 
     # draw the output to the original image
@@ -50,9 +51,9 @@ def main_test(image: str, use_abs_path=False, do_output_drawing=False, do_solvin
         draw_output(detected_array, solved_array)
         show_imgs_for_nn()
         wait_for_window_close_or_keypress()
-
-    print('Time spent: {}'.format(time.time() - start_time))
-
+    operation_time = time.time() - start_time
+    print('Time spent: {}'.format(operation_time))
+    return operation_time
 
 def test_solver(solver_type: str) -> None:
     # Array for testing

@@ -21,6 +21,9 @@ def predict(cut_digit_img: np.ndarray) -> int:
     global images_for_nn
     global images_for_nr
     images_for_nr.append(rescale_img(cut_digit_img,28))
+    dimensions = cut_digit_img.shape
+    if dimensions[0]==0 or dimensions[1]==0:
+        return 0
     minmax = (cut_digit_img.flatten().min(), cut_digit_img.flatten().max())
 
     cut_digit_img = rescale_intensity(cut_digit_img, minmax)

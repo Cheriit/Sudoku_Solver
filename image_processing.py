@@ -139,7 +139,7 @@ def process_fields(sudoku_field_img_array: np.ndarray, enable_save=False, saveNa
             cut_digits_thresholded_imgs.append(thresholded_img)
             dim = thresholded_img.shape
 
-            contours, _ = cv2.findContours(thresholded_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            _,contours, _ = cv2.findContours(thresholded_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             found = None
             if len(contours) != 0:
                 for c in contours:
